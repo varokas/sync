@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Sync</title>
+    <script src="firebase.js"></script>
+    <script src="jquery-2.1.4.min.js"></script>
+  </head>
+  <body>
+    <iframe id="contentFrame" src="" style="position:fixed; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%; border:none; margin:0; padding:0; overflow:hidden; z-index:1;">
+    Your browser doesn't support iframes
+    </iframe>
+    <div id="url" style="position: fixed; top:0;z-index:2;"></div>
+    <div id="counter" style="z-index:3;position: fixed; top:1em; left:0; margin: 1em; padding:0.5em; border: 1px solid black">5</div>
+    <script type="text/javascript">
+      jQuery(document).ready(function() {
+        var firebase = new Firebase("https://vpn.firebaseio.com/");
+
+
+        $("#counter").css("visibility", "hidden");
+        var count = 3;
+	var nextUrl = "";
+
+        firebase.child("liveoke/url").on("value", function(snapshot) {
+          count = 3;
+	  console.log(snapshot.val());
+	  nextUrl = snapshot.val();
+	  $("#url").html(nextUrl);
+          $("#counter").css("visibility", "visible");
+        });
+
+        setInterval(function() {
+           if(nextUrl != "") {		
+             $("#counter").html(count);
+	     if(count <= 0) {
+               $("#contentFrame").attr("src", nextUrl);
+	       nextUrl = "";
+               $("#counter").css("visibility", "hidden");
+	     } else {
+               count--;
+	     }
+	   }
+         }, 1000);
+        var urlParams = getUrlVars();
+        if(urlParams.url != undefined) {
+          firebase.set({ "liveoke": { "url": urlParams.url } });
+        }
+      });
+
+function getUrlVars()
+{
+    var vars = [], hash;
+    var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+    for(var i = 0; i < hashes.length; i++)
+    {
+        hash = hashes[i].split('=');
+        vars.push(hash[0]);
+        vars[hash[0]] = hash[1];
+    }
+    return vars;
+}
+    </script>
+  </body>
+</html>
+
